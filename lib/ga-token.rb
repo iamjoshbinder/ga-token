@@ -18,8 +18,8 @@ class GA::Token
   end
 
   def initialize(token)
-    @token = token.dup
-    @host  = GA::Token.host.dup
+    @token = URI.encode_www_form_component(token)
+    @host  = GA::Token.host
     @agent = Net::HTTP.new(@host)
   end
 
@@ -29,6 +29,7 @@ class GA::Token
   end
 
   def can?(privilege)
+    privilege = URI.encode_www_form_component(privilege) 
     res = get "/auth/#{@token}/access/#{privilege}"
     res['allowed']
   end
