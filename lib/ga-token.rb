@@ -1,36 +1,44 @@
 require "ga-token/version"
-require "dash"
+require "net/http"
 
 module GA
-  class Token
-    def self.host=(host)
-      @host = host
-    end
+end
 
-    def self.host
-      @host
-    end
+class GA::Token
+  def self.host=(host)
+    @host = host
+  end
 
-    def self.configure(&block)
-      yield(self) 
-    end
+  def self.host
+    @host
+  end
 
-    def initialize(token)
-      @token = URI.encode_www_form_component(token)
-      @host  = GA::Token.host.dup
-      p @host
-      @agent = Dash::Agent.new(@host)  
-    end
+  def self.configure(&block)
+    yield(self) 
+  end
 
-    def valid?
-      res = @agent.get "/auth/#{@token}/valid"
-      res['valid']
-    end
+  def initialize(token)
+    @token = token.dup
+    @host  = GA::Token.host.dup
+    @agent = Net::HTTP.new(@host)
+  end
 
-    def can?(privilege)
-      privilege = URI.encode_www_form_component(privilege) 
-      res = @agent.get "/auth/#{@token}/access/#{privilege}"
-      res['allowed']
-    end
+  def valid?
+    res = get "/auth/#{@token}/valid"
+    res['valid']
+  end
+
+  def can?(privilege)
+    res = get "/auth/#{@token}/access/#{privilege}"
+    res['allowed']
+  end
+
+private 
+  def get(path)
+    req = Net::HTTP::Get.new(path)
+    @agent.start
+    res = @agent.request(req)
+    @agent.finish
+    Yajl.load(res.body)
   end
 end

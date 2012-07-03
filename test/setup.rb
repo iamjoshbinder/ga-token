@@ -8,5 +8,7 @@ require 'minitest/autorun'
 require 'fakeweb'
 
 GA::Token.configure do |c|
-  c.host = 'generalassemb.ly'
+  c.host = 'http://localhost'
 end
+
+FakeWeb.allow_net_connect = %r[^https?://localhost]
