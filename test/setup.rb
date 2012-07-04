@@ -5,10 +5,8 @@ require 'yajl'
 require 'ga-token'
 require 'minitest/spec'
 require 'minitest/autorun'
-require 'fakeweb'
+require 'webmock/minitest'
 
 GA::Token.configure do |c|
-  c.host = 'http://localhost'
+  c.host = 'localhost'
 end
-
-FakeWeb.allow_net_connect = %r[^https?://localhost]

@@ -4,6 +4,6 @@ gem 'dash', git: 'https://github.com/strmpnk/dash.git', branch: '4e79819ff57eaa2
 gem 'pry'
 
 group :test do
-  gem 'fakeweb'
+  gem 'webmock'
   gem 'yajl-ruby'  
 end
