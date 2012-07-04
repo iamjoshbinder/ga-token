@@ -5,8 +5,8 @@ require 'yajl'
 require 'ga-token'
 require 'minitest/spec'
 require 'minitest/autorun'
-require 'fakeweb'
+require 'webmock/minitest'
 
 GA::Token.configure do |c|
-  c.host = 'generalassemb.ly'
+  c.host = 'localhost'
 end

@@ -1,35 +1,44 @@
 require_relative 'setup'
 
 describe GA::Token do
-  before do 
-    FakeWeb.clean_registry
-  end
-
-  describe '#valid?' do
-    it 'returns true when given a valid token.' do
-      FakeWeb.register_uri :get, %r{/auth/\w+/valid}, body: Yajl.dump(valid: true) 
-      token = GA::Token.new 'my-valid-token'
-      token.valid?.must_equal(true)
+  let(:headers) { {'Content-Type'  => 'application/json' } }
+  
+  describe '#expired?' do
+    it 'returns true when a token has expired.' do
+      stub = stub_request(:get, 'http://localhost/auth/my-invalid-token/expired')
+      stub.to_return body: Yajl.dump(expired: true), headers: headers
+      token = GA::Token.new 'my-invalid-token'
+      token.expired?.must_equal(true)
     end
 
-    it 'returns false when givan an invalid token.' do
-      FakeWeb.register_uri :get, %r{/auth/\w+/valid}, body: Yajl.dump(valid: false)
-      token = GA::Token.new 'my-invalid-token'
-      token.valid?.must_equal(false)
+    it 'returns true when the token does not exist.' do
+      stub = stub_request(:get, 'http://localhost/auth/dontexist/expired')
+      stub.to_return status: "404"
+      token = GA::Token.new 'dontexist'
+      token.expired?.must_equal(true)
+    end
+
+    it 'returns false when a token has not expired.' do
+      stub = stub_request(:get, 'http://localhost/auth/my-valid-token/expired')
+      stub.to_return body: Yajl.dump(expired: false), headers: headers
+      token = GA::Token.new 'my-valid-token'
+      token.expired?.must_equal(false)
     end
   end
 
   describe '#can?' do
     it 'returns true when a user can do something.' do
-      FakeWeb.register_uri :get, %r{/auth/\w+/access/\w+}, Yajl.dump(allowed: true)
-      token = GA::Token.new 'i-can-disco-dance'
-      token.can?('disco-dance').must_equal(true)
+      stub = stub_request(:get, 'http://localhost/auth/my-token/access/email')
+      stub.to_return body: Yajl.dump(allowed: true), headers: headers
+      token = GA::Token.new 'my-token'
+      token.can?('email').must_equal(true)
     end
     
-    it "returns false when a user can't do something" do
-      FakeWeb.register_uri :get, %r{/auth/\w+/access/\w+}, Yajl.dump(allowed: false)
-      token = Ga::Token.new 'i-cant-disco-dance'
-      token.can?('disco-dance').must_equal(false)
+    it 'returns false when a user cannot do something.' do
+      stub = stub_request(:get, 'http://localhost/auth/my-token/access/run-job')
+      stub.to_return body: Yajl.dump(allowed: false), headers: headers
+      token = GA::Token.new 'my-token'
+      token.can?('run-job').must_equal(false)
     end
   end
 end

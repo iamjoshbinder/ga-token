@@ -1,36 +1,57 @@
 require "ga-token/version"
-require "dash"
+require "net/http"
 
 module GA
-  class Token
-    def self.host=(host)
-      @host = host
-    end
+end
 
-    def self.host
-      @host
-    end
+class GA::Token
+  def self.host=(host)
+    @host = host
+  end
 
-    def self.configure(&block)
-      yield(self) 
-    end
+  def self.host
+    @host
+  end
 
-    def initialize(token)
-      @token = URI.encode_www_form_component(token)
-      @host  = GA::Token.host.dup
-      p @host
-      @agent = Dash::Agent.new(@host)  
-    end
+  def self.configure(&block)
+    yield(self) 
+  end
 
-    def valid?
-      res = @agent.get "/auth/#{@token}/valid"
-      res['valid']
-    end
+  def expired?
+    res = get "/auth/#{@token}/expired"
+    return true if !res 
+    res['expired']
+  end
 
-    def can?(privilege)
-      privilege = URI.encode_www_form_component(privilege) 
-      res = @agent.get "/auth/#{@token}/access/#{privilege}"
-      res['allowed']
+  def can?(privilege)
+    privilege = URI.encode_www_form_component(privilege) 
+    res = get "/auth/#{@token}/access/#{privilege}"
+    res && res['allowed']
+  end
+
+private 
+  def initialize(token)
+    @token = URI.encode_www_form_component(token)
+    @host  = GA::Token.host
+    @agent = Net::HTTP.new(@host)
+  end
+
+  def get(path)
+    req = Net::HTTP::Get.new(path)
+    @agent.start
+    res = @agent.request(req)
+    @agent.finish
+
+    case res
+    when Net::HTTPOK
+      case res['content-type']
+      when 'application/json'
+        Yajl.load(res.body)
+      else
+        raise "No parser for: '#{res['content-type']}'." 
+      end
+    else
+      nil
     end
   end
 end
