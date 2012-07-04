@@ -19,7 +19,8 @@ class GA::Token
 
   def expired?
     res = get "/auth/#{@token}/expired"
-    res && res['expired']
+    return true if !res 
+    res['expired']
   end
 
   def can?(privilege)

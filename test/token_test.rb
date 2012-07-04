@@ -4,18 +4,24 @@ describe GA::Token do
   let(:headers) { {'Content-Type'  => 'application/json' } }
   
   describe '#expired?' do
-    it 'returns false when a token has not expired.' do
-      stub = stub_request(:get, 'http://localhost/auth/my-valid-token/expired')
-      stub.to_return body: Yajl.dump(expired: false), headers: headers
-      token = GA::Token.new 'my-valid-token'
-      token.expired?.must_equal(false)
-    end
-
     it 'returns true when a token has expired.' do
       stub = stub_request(:get, 'http://localhost/auth/my-invalid-token/expired')
       stub.to_return body: Yajl.dump(expired: true), headers: headers
       token = GA::Token.new 'my-invalid-token'
       token.expired?.must_equal(true)
+    end
+
+    it 'returns true when the token does not exist.' do
+      stub = stub_request(:get, 'http://localhost/auth/dontexist/expired')
+      token = GA::Token.new 'dontexist'
+      token.expired?.must_equal(true)
+    end
+
+    it 'returns false when a token has not expired.' do
+      stub = stub_request(:get, 'http://localhost/auth/my-valid-token/expired')
+      stub.to_return body: Yajl.dump(expired: false), headers: headers
+      token = GA::Token.new 'my-valid-token'
+      token.expired?.must_equal(false)
     end
   end
 
