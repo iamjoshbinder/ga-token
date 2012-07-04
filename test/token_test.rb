@@ -1,6 +1,5 @@
 require_relative 'setup'
 
-
 describe GA::Token do
   describe '#valid?' do
     it 'returns true when given a valid token.' do
@@ -20,17 +19,17 @@ describe GA::Token do
 
   describe '#can?' do
     it 'returns true when a user can do something.' do
-      stub = stub_request(:get, 'http://localhost/auth/abc/access/def')
+      stub = stub_request(:get, 'http://localhost/auth/my-token/access/email')
       stub.to_return body: Yajl.dump(allowed: true)
-      token = GA::Token.new 'abc'
-      token.can?('def').must_equal(true)
+      token = GA::Token.new 'my-token'
+      token.can?('email').must_equal(true)
     end
     
     it 'returns false when a user cannot do something.' do
-      stub = stub_request(:get, 'http://localhost/auth/123/access/456')
+      stub = stub_request(:get, 'http://localhost/auth/my-token/access/run-job')
       stub.to_return body: Yajl.dump(allowed: false)
-      token = GA::Token.new '123'
-      token.can?('456').must_equal(false)
+      token = GA::Token.new 'my-token'
+      token.can?('run-job').must_equal(false)
     end
   end
 end
