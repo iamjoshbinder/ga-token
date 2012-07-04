@@ -5,6 +5,9 @@ module GA
 end
 
 class GA::Token
+  APIError = Class.new(StandardError) 
+  NoParserError = Class.new(StandardError)
+  
   def self.host=(host)
     @host = host
   end
@@ -48,10 +51,12 @@ private
       when 'application/json'
         Yajl.load(res.body)
       else
-        raise "No parser for: '#{res['content-type']}'." 
+        raise NoParserError, "No parser for: '#{res['content-type']}'." 
       end
-    else
+    when Net::HTTPNotFound
       nil
+    else
+      raise APIError, "API responded with #{res.code}"
     end
   end
 end

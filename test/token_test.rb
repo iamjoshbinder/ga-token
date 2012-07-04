@@ -13,7 +13,7 @@ describe GA::Token do
 
     it 'returns true when the token does not exist.' do
       stub = stub_request(:get, 'http://localhost/auth/dontexist/expired')
-      stub.to_return status: "404"
+      stub.to_return status: 404
       token = GA::Token.new 'dontexist'
       token.expired?.must_equal(true)
     end
