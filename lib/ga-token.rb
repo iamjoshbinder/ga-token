@@ -25,13 +25,13 @@ class GA::Token
 
   def valid?
     res = get "/auth/#{@token}/valid"
-    res['valid']
+    res && res['valid']
   end
 
   def can?(privilege)
     privilege = URI.encode_www_form_component(privilege) 
     res = get "/auth/#{@token}/access/#{privilege}"
-    res['allowed']
+    res && res['allowed']
   end
 
 private 
@@ -40,6 +40,13 @@ private
     @agent.start
     res = @agent.request(req)
     @agent.finish
-    Yajl.load(res.body)
+
+    # TODO: use custom content-type that versions our data model.
+    case res['content-type']
+    when 'application/json'
+      Yajl.load(res.body)
+    else
+      nil
+    end
   end
 end
