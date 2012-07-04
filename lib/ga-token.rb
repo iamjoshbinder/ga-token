@@ -44,7 +44,10 @@ private
     @agent.start
     res = @agent.request(req)
     @agent.finish
+    process(res)
+  end
 
+  def process(res)
     case res
     when Net::HTTPOK
       case res['content-type']
