@@ -54,6 +54,7 @@ private
         raise NoParserError, "No parser for: '#{res['content-type']}'." 
       end
     when Net::HTTPNotFound
+      warn "[GA::Token] 404 from http://#{File.join(@host, path)}"
       nil
     else
       raise APIError, "API responded with #{res.code}"
