@@ -17,12 +17,6 @@ class GA::Token
     yield(self) 
   end
 
-  def initialize(token)
-    @token = URI.encode_www_form_component(token)
-    @host  = GA::Token.host
-    @agent = Net::HTTP.new(@host)
-  end
-
   def expired?
     res = get "/auth/#{@token}/expired"
     res && res['expired']
@@ -35,6 +29,12 @@ class GA::Token
   end
 
 private 
+  def initialize(token)
+    @token = URI.encode_www_form_component(token)
+    @host  = GA::Token.host
+    @agent = Net::HTTP.new(@host)
+  end
+
   def get(path)
     req = Net::HTTP::Get.new(path)
     @agent.start
