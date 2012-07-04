@@ -42,10 +42,14 @@ private
     res = @agent.request(req)
     @agent.finish
 
-    # TODO: use custom content-type that versions our data model.
-    case res['content-type']
-    when 'application/json'
-      Yajl.load(res.body)
+    case res
+    when Net::HTTPOK
+      case res['content-type']
+      when 'application/json'
+        Yajl.load(res.body)
+      else
+        raise "No parser for: '#{res['content-type']}'." 
+      end
     else
       nil
     end
