@@ -23,9 +23,9 @@ class GA::Token
     @agent = Net::HTTP.new(@host)
   end
 
-  def valid?
-    res = get "/auth/#{@token}/valid"
-    res && res['valid']
+  def expired?
+    res = get "/auth/#{@token}/expired"
+    res && res['expired']
   end
 
   def can?(privilege)
