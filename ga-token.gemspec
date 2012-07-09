@@ -14,4 +14,5 @@ Gem::Specification.new do |gem|
   gem.name          = "ga-token"
   gem.require_paths = ["lib"]
   gem.version       = GA::Token::VERSION
+  gem.add_runtime_dependency 'yajl-ruby', "~> 1.1.0" 
 end
