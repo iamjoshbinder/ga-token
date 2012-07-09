@@ -7,7 +7,21 @@ end
 class GA::Token
   APIError = Class.new(StandardError) 
   NoParserError = Class.new(StandardError)
-  
+
+  def self.acquire(assertion) 
+    agent = Net::HTTP.start(@host)
+    agent.start
+    res = agent.post '/auth/identity', Yajl.dump(assertion: assertion) 
+    agent.finish
+    case res
+    when Net::HTTPOK
+      body = Yajl.load(res.body) 
+      new body['token'] 
+    else
+      nil
+    end
+  end
+
   def self.host=(host)
     @host = host
   end
@@ -18,6 +32,12 @@ class GA::Token
 
   def self.configure(&block)
     yield(self) 
+  end
+
+  def owner
+    return @owner if @owner
+    res = get "/auth/identity/#{@token}"
+    @owner = res['owner']
   end
 
   def expired?
