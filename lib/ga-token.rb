@@ -1,5 +1,6 @@
 require "ga-token/version"
 require "net/http"
+require 'yajl'
 
 module GA
 end
