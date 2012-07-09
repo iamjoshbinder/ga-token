@@ -13,6 +13,7 @@ class GA::Token
     agent.start
     res = agent.post '/auth/identity', Yajl.dump(assertion: assertion) 
     agent.finish
+    
     case res
     when Net::HTTPOK
       body = Yajl.load(res.body) 
@@ -21,6 +22,10 @@ class GA::Token
       nil
     end
   end
+  
+  def self.configure(&block)
+    yield self
+  end
 
   def self.host=(host)
     @host = host
@@ -28,10 +33,6 @@ class GA::Token
 
   def self.host
     @host
-  end
-
-  def self.configure(&block)
-    yield(self) 
   end
 
   def owner
