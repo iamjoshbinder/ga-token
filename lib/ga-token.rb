@@ -7,7 +7,7 @@ end
 class GA::Token
   APIError = Class.new(StandardError) 
   NoParserError = Class.new(StandardError)
-  Host = Struct.new(:address, :port)
+  Host = Struct.new(:address, :port) 
 
   def self.acquire(assertion) 
     agent = Net::HTTP.new(@host.address, @host.port)
@@ -79,7 +79,6 @@ private
         raise NoParserError, "No parser for: '#{res['content-type']}'." 
       end
     when Net::HTTPNotFound
-      warn "[GA::Token] 404 from http://#{@host.address}"
       nil
     else
       raise APIError, "API responded with #{res.code}"
