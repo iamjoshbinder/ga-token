@@ -7,9 +7,10 @@ end
 class GA::Token
   APIError = Class.new(StandardError) 
   NoParserError = Class.new(StandardError)
+  Host = Struct.new(:address, :port)
 
   def self.acquire(assertion) 
-    agent = Net::HTTP.start(@host)
+    agent = Net::HTTP.new(@host.address, @host.port)
     agent.start
     res = agent.post '/auth/identity', Yajl.dump(assertion: assertion) 
     agent.finish
@@ -28,7 +29,7 @@ class GA::Token
   end
 
   def self.host=(host)
-    @host = host
+    @host = Host.new *host.split(':') 
   end
 
   def self.host
@@ -57,7 +58,7 @@ private
   def initialize(token)
     @token = URI.encode_www_form_component(token)
     @host  = GA::Token.host
-    @agent = Net::HTTP.new(@host)
+    @agent = Net::HTTP.new(@host.address, @host.port)
   end
 
   def get(path)
@@ -78,7 +79,7 @@ private
         raise NoParserError, "No parser for: '#{res['content-type']}'." 
       end
     when Net::HTTPNotFound
-      warn "[GA::Token] 404 from http://#{File.join(@host, path)}"
+      warn "[GA::Token] 404 from http://#{@host.address}"
       nil
     else
       raise APIError, "API responded with #{res.code}"
