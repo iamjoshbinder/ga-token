@@ -7,18 +7,11 @@ end
 
 class GA::Token
   def self.acquire(assertion) 
-    agent = Excon.new @host
-    res = agent.post path: '/auth/identity', 
-                     body: Yajl.dump(assertion: assertion), 
-                     headers: { 'Content-Type' => 'application/json' }
-
-    case res.status
-    when 200..299
-      body = Yajl.load(res.body) 
-      new body['token'] 
-    else
-      nil
-    end
+    agent = HTTPAgent.new @host
+    res = agent.post '/auth/identity', body: Yajl.dump(assertion: assertion), 
+                                       headers: { 'Content-Type' => 'application/json' }
+    body = Yajl.load(res.body) 
+    new body['token']
   end
   
   def self.configure(&block)
