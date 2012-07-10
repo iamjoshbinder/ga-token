@@ -13,7 +13,9 @@ class GA::Token
   def self.acquire(assertion) 
     agent = Net::HTTP.new(@host.address, @host.port)
     agent.start
-    res = agent.post '/auth/identity', Yajl.dump(assertion: assertion) 
+    res = agent.post '/auth/identity', 
+                      Yajl.dump(assertion: assertion), 
+                      { 'Content-Type' => 'application/json' }
     agent.finish
     
     case res
@@ -41,6 +43,10 @@ class GA::Token
     return @owner if @owner
     res = get "/auth/identity/#{@token}"
     @owner = res['owner']
+  end
+
+  def value
+    URI.decode_www_form_component(@token)
   end
 
   def expired?
