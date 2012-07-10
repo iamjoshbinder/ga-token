@@ -56,7 +56,6 @@ private
   end
 end
 
-
 class GA::Token::HTTPAgent
   APIError = Class.new(StandardError)
 
