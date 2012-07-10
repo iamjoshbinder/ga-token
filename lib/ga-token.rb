@@ -72,7 +72,7 @@ private
   end
   
   def normalize(domain)
-    if domain =~ %r(http(s?)://)
+    if domain =~ %r(^http(s?)://)
       domain
     else
       "http://#{domain}"
