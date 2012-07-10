@@ -6,9 +6,6 @@ module GA
 end
 
 class GA::Token
-  APIError = Class.new(StandardError) 
-  NoParserError = Class.new(StandardError)
-
   def self.acquire(assertion) 
     agent = Excon.new @host
     res = agent.post path: '/auth/identity', 
@@ -29,11 +26,7 @@ class GA::Token
   end
 
   def self.host=(host)
-    if host =~ %r(http(s?)://)
-      @host = host
-    else
-      @host = "http://#{host}"
-    end
+    @host = host
   end
 
   def self.host
@@ -42,7 +35,7 @@ class GA::Token
 
   def owner
     return @owner if @owner
-    res = get "/auth/identity/#{@token}"
+    res = @agent.get "/auth/identity/#{@token}"
     @owner = res['owner']
   end
 
@@ -51,43 +44,56 @@ class GA::Token
   end
 
   def expired?
-    res = get "/auth/#{@token}/expired"
+    res = @agent.get "/auth/#{@token}/expired"
     return true if !res 
     res['expired']
   end
 
   def can?(privilege)
     privilege = URI.encode_www_form_component(privilege) 
-    res = get "/auth/#{@token}/access/#{privilege}"
+    res = @agent.get "/auth/#{@token}/access/#{privilege}"
     res && res['allowed']
   end
 
 private 
   def initialize(token)
     @token = URI.encode_www_form_component token
-    @agent = Excon.new GA::Token.host
+    @agent = HTTPAgent.new GA::Token.host
+  end
+end
+
+
+class GA::Token::HTTPAgent
+  APIError = Class.new(StandardError)
+
+  %w(get put delete post).each do |verb|
+    define_method(verb) do |path, options = {}|
+      res = @agent.send verb, options.merge(path: path)
+      process(res)
+    end
+  end
+
+private 
+  def initialize(domain)
+    @agent = Excon.new normalize(domain)
+  end
+  
+  def normalize(domain)
+    if domain =~ %r(http(s?)://)
+      domain
+    else
+      "http://#{domain}"
+    end
   end
 
   def process(res)
     case res.status
     when 200..299
-      case res.headers['Content-Type']
-      when 'application/json'
-        Yajl.load(res.body)
-      else
-        raise NoParserError, "No parser for: '#{res.headers['Content-Type']}'."
-      end
+      Yajl.load(res.body)
     when 404
       nil
     else
       raise APIError, "API responded with #{res.status}"
-    end
-  end
-
-  %w(get put delete post).each do |verb|
-    define_method(verb) do |path|
-      res = @agent.send(verb, path: path)
-      process(res) 
     end
   end
 end
