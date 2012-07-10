@@ -1,6 +1,6 @@
-require "ga-token/version"
-require "net/http"
+require 'ga-token/version'
 require 'yajl'
+require 'excon'
 
 module GA
 end
@@ -8,18 +8,15 @@ end
 class GA::Token
   APIError = Class.new(StandardError) 
   NoParserError = Class.new(StandardError)
-  Host = Struct.new(:address, :port) 
 
   def self.acquire(assertion) 
-    agent = Net::HTTP.new(@host.address, @host.port)
-    agent.start
-    res = agent.post '/auth/identity', 
-                      Yajl.dump(assertion: assertion), 
-                      { 'Content-Type' => 'application/json' }
-    agent.finish
-    
-    case res
-    when Net::HTTPOK
+    agent = Excon.new @host
+    res = agent.post path: '/auth/identity', 
+                     body: Yajl.dump(assertion: assertion), 
+                     headers: { 'Content-Type' => 'application/json' }
+
+    case res.status
+    when 200..299
       body = Yajl.load(res.body) 
       new body['token'] 
     else
@@ -32,7 +29,11 @@ class GA::Token
   end
 
   def self.host=(host)
-    @host = Host.new *host.split(':') 
+    if host =~ %r(http(s?)://)
+      @host = host
+    else
+      @host = "http://#{host}"
+    end
   end
 
   def self.host
@@ -63,32 +64,30 @@ class GA::Token
 
 private 
   def initialize(token)
-    @token = URI.encode_www_form_component(token)
-    @host  = GA::Token.host
-    @agent = Net::HTTP.new(@host.address, @host.port)
-  end
-
-  def get(path)
-    req = Net::HTTP::Get.new(path)
-    @agent.start
-    res = @agent.request(req)
-    @agent.finish
-    process(res)
+    @token = URI.encode_www_form_component token
+    @agent = Excon.new GA::Token.host
   end
 
   def process(res)
-    case res
-    when Net::HTTPOK
-      case res['content-type']
+    case res.status
+    when 200..299
+      case res.headers['Content-Type']
       when 'application/json'
         Yajl.load(res.body)
       else
-        raise NoParserError, "No parser for: '#{res['content-type']}'." 
+        raise NoParserError, "No parser for: '#{res.headers['Content-Type']}'."
       end
-    when Net::HTTPNotFound
+    when 404
       nil
     else
-      raise APIError, "API responded with #{res.code}"
+      raise APIError, "API responded with #{res.status}"
+    end
+  end
+
+  %w(get put delete post).each do |verb|
+    define_method(verb) do |path|
+      res = @agent.send(verb, path: path)
+      process(res) 
     end
   end
 end
