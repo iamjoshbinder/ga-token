@@ -8,8 +8,9 @@ end
 class GA::Token
   def self.acquire(assertion) 
     agent = HTTPAgent.new @host
-    res = agent.post '/auth/identity', body: Yajl.dump(assertion: assertion), 
-                                       headers: { 'Content-Type' => 'application/json' }
+    body = Yajl,dump(assertion: assertion)
+    headers = { 'Content-Type' => 'application/json' }
+    res = agent.post '/auth/identity', body: body, headers: headers
     body = Yajl.load(res.body) 
     new body['token']
   end
