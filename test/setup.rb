@@ -7,6 +7,4 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require 'webmock/minitest'
 
-GA::Token.configure do |c|
-  c.host = 'localhost'
-end
+GA::Token.host = 'localhost'
