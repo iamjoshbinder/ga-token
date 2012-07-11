@@ -13,10 +13,6 @@ class GA::Token
     res = agent.post '/auth/identity', body: body, headers: headers
     new res['token']
   end
-  
-  def self.configure(&block)
-    yield self
-  end
 
   def self.host=(host)
     @host = host
