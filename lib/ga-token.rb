@@ -24,18 +24,19 @@ class GA::Token
 
   def owner
     return @owner if @owner
-    res = @agent.get "/auth/identity/#{@token}"
-    @owner = res['owner']
+    res = @agent.get "/auth/token/#{@token}"
+    process(res) 
+  end
+  
+  def expired?
+    return @expired if @expired
+    res = @agent.get "/auth/token/#{@token}"
+    return true if !res
+    process(res) 
   end
 
   def value
     URI.decode_www_form_component(@token)
-  end
-
-  def expired?
-    res = @agent.get "/auth/#{@token}/expired"
-    return true if !res 
-    res['expired']
   end
 
   def can?(privilege)
@@ -48,6 +49,11 @@ private
   def initialize(token)
     @token = URI.encode_www_form_component token
     @agent = HTTPAgent.new GA::Token.host
+  end
+
+  def process(res)
+    @owner = res['owner']
+    @expired = res['expired']
   end
 end
 
