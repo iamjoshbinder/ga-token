@@ -26,6 +26,7 @@ class GA::Token
     return @owner if @owner
     res = @agent.get "/auth/token/#{@token}"
     process(res) 
+    @owner
   end
   
   def expired?
@@ -33,6 +34,7 @@ class GA::Token
     res = @agent.get "/auth/token/#{@token}"
     return true if !res
     process(res) 
+    @expired
   end
 
   def value
