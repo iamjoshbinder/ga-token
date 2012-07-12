@@ -63,8 +63,8 @@ private
   end
 
   def process(res)
-    @owner = res['owner']
-    @expired = res['expired']
+    @owner = res && res['owner']
+    @expired = res && res['expired']
   end
 end
 
