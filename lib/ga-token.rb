@@ -14,6 +14,10 @@ class GA::Token
     new res['token']
   end
 
+  def self.find_by_value(value)
+    new(value)
+  end
+
   def self.host=(host)
     @host = host
   end
