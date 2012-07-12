@@ -36,7 +36,6 @@ class GA::Token
   def expired?
     return @expired if defined?(@expired)
     res = @agent.get "/auth/token/#{@token}"
-    return true if !res
     process(res) 
     @expired
   end
