@@ -1,10 +1,10 @@
 #!/usr/bin/env rake
 require "bundler/gem_tasks"
 
-namespace :test do
-  task :run do
-    system "bundle", "exec", "ruby", "-Ilib", "test/*_test.rb" 
+task :test do
+  Dir["test/*_test.rb"].each do |test|
+    require_relative test
   end
 end
 
-task :default => 'test:run'
+task :default => 'test'
