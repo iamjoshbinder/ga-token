@@ -27,14 +27,14 @@ class GA::Token
   end
 
   def owner
-    return @owner if @owner
+    return @owner if defined?(@owner)
     res = @agent.get "/auth/token/#{@token}"
     process(res) 
     @owner
   end
   
   def expired?
-    return @expired if @expired
+    return @expired if defined?(@expired)
     res = @agent.get "/auth/token/#{@token}"
     return true if !res
     process(res) 
