@@ -37,6 +37,11 @@ class GA::Token
     @expired
   end
 
+  def destroy
+    res = @agent.delete "/auth/token/#{@token}"
+    res && res['destroyed']
+  end
+
   def value
     URI.decode_www_form_component(@token)
   end
